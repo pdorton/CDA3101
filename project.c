@@ -2,8 +2,7 @@
 #include "spimcore.h"
 /* ALU */ /* 10 Points */
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero) {
-	switch (ALUControl)
-	{
+	switch (ALUControl)	{
 	case 000:		// Add A + B  || don't care??
 		ALUresult = A + B;
 		break;
@@ -38,7 +37,12 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 
 /* instruction fetch */ /* 10 Points */
 int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction) {
-
+    // PC is counter (0x4000)
+    //*Mem is memory location (use 4* *MEM + PC for intended location)
+    // *instruction is the HEX value being passed for action
+    unsigned *op, *r1, *r2, *r3, *funct, *offset, *jsec;
+    instruction_partition(instruction, &op, &r1, &r2, &r3, &funct, &offset, &jsec) 
+    /* instruction_decode() */
 }
 
 
@@ -54,13 +58,17 @@ int instruction_decode(unsigned op, struct_controls *controls) {
 
 /* Read Register */ /* 5 Points */
 void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2) {
-
+// two lines of code
 }
 
 
 /* Sign Extend */ /* 10 Points */
 void sign_extend(unsigned offset, unsigned *extended_value) {
-	
+	int first_digit = offset >> 15;
+    if (first_digit) // if negative then
+        *extended_value = offset | 0xFFFF0000 // OR with 32 bit with leading 16 1s 
+    else
+        *extended_value = offset | 0x00000000 //OR with 0 which will return with leading 0s        
 }
 
 
