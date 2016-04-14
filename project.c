@@ -51,7 +51,7 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 		*funct = NULL,
 		*offset = NULL,
 		*jsec = NULL;
-	instruction_partition(*instruction, &op, &r1, &r2, &r3, &funct, &offset, &jsec);
+	instruction_partition(*instruction, op, r1, r2, r3, funct, offset, jsec);
     /* instruction_decode() */
 }
 
@@ -68,43 +68,40 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned r1, unsi
 		*offset = ((instruction >> 6) & 0x1F);
 		*funct = instruction & 0x3F;
 	}
-	/* I-Type */
-	// op|6   rs|5   rt|5   conts/addy|16
-	if (&op == 0x0) { // this is an i-type
-		r1 = ((instruction >> 21) & 0x1F);
-		*r2 = ((instruction >> 16) & 0x1F);
-		// immediate *something = instruction & 0xFFFF;
-	}
+
 
 	/* J-Type */// op|6   address|26 
-	if(*op == 0x000010 || *op == 0x000011) { // if jump ot jump link
+	else if(*op == 0x000010 || *op == 0x000011) { // if jump ot jump link
 		// address = (instruction & 0x3FFFFFF);
 	}
+	else if 
+	/* I-Type */
+	// op|6   rs|5   rt|5   conts/addy|16
 	
 	/*
 	2x 0x000000 // R-Type 
 
-	0x000010 // jump
-	0x000011 // jump link
-	0x000100 // branch if eq
-	0x000101 // branch not eq
-	0x001000 // addi
-	0x001001 // addiu
-	0x001010 // slti
-	0x001011 // sltiu
-	0x001100 // andi
-	0x001101 // ori
-	0x001111 // lui
-	0x100000 // lb load byte 
-	0x100001 // lh load half
-	0x100011 // lw load word
-	0x100100 // lbu
-	0x100101 // lhu
-	0x101000 // sb store byte
-	0x101001 // sh store half
-	0x101011 // sw store word
-	0x110001 // lwcl
-	0x111001 // swcl
+	0x000010 // jump				J
+	0x000011 // jump link			J
+	0x000100 // branch if eq		I
+	0x000101 // branch not eq		I
+	0x001000 // addi				R
+	0x001001 // addiu				R
+	0x001010 // slti				I
+	0x001011 // sltiu				I
+	0x001100 // andi				I		
+	0x001101 // ori					I
+	0x001111 // lui					I	
+	0x100000 // lb load byte		I
+	0x100001 // lh load half		I
+	0x100011 // lw load word		I
+	0x100100 // lbu					I
+	0x100101 // lhu					I
+	0x101000 // sb store byte		I
+	0x101001 // sh store half		I
+	0x101011 // sw store word		I
+	0x110001 // lwcl				I
+	0x111001 // swcl				I
 	*/
 
 
