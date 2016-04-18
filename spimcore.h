@@ -1,7 +1,22 @@
 #include <stdio.h> #include <stdlib.h> #include <string.h>
 #ifndef SPIMCORE
-typedef struct { char RegDst; char Jump; char Branch; char MemRead; char MemtoReg; char ALUOp; char MemWrite; char ALUSrc; char RegWrite; }struct_controls;
+typedef struct 
+{
+ char RegDst; 
+ char Jump; 
+ char Branch; 
+ char MemRead; 
+ char MemtoReg; 
+ char ALUOp; 
+ char MemWrite; 
+ char ALUSrc; 
+ char RegWrite; 
+ }struct_controls;
+
+
+
 /* ALU */
+
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero);
 /* fetch instruction from memory */ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction);
 /* instruction partition */ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec);

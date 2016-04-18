@@ -39,7 +39,8 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 /* instruction fetch */ /* 10 Points */
 int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction) 
 {
-	/* Need to make sure that *instruction is of type HEX (0x); if not then convert from decimal to hex */
+	/* Need to make sure that *instruction is of type HEX (0x); 
+	   if not then convert from decimal to hex */
 
     // PC is counter (0x4000)
     //*Mem is memory location (use 4* *MEM + PC for intended location)
@@ -111,9 +112,25 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned r1, unsi
 /* instruction decode */ /* 15 Points */
 int instruction_decode(unsigned op, struct_controls *controls) 
 {
+	/* ALL THE OP CODES IN BINARY WILL CONVERT TO HEX AT LATER DATE WHEN IMPLEMENTED 
 	
-	/*take in the op code and see if the instruction is a R , I, or J type
-	and set op codes */
+		000     addition or don't care
+		001 	do subtraction
+		010		set on less than
+		011		set less than unsigned
+		100		and operator
+		101		or operator
+		110 	shift left extended value by 16 bits
+		111		this is an R type instruction */
+		
+	/*take in the op code and see if the instruction is an 
+	R , I, or J type and 
+	
+	set op codes 
+	1 : enabled
+	0 : Disabled 
+	2 : Don't Care */
+	
 	return 0;
 }
 
@@ -121,6 +138,8 @@ int instruction_decode(unsigned op, struct_controls *controls)
 /* Read Register */ /* 5 Points */
 void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2) 
 {
+	*data1 = r1; // assign r1 to data 1 
+	*data2 = r2; // assign r2 to data 2
 // two lines of code
 }
 
