@@ -112,16 +112,54 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned r1, unsi
 /* instruction decode */ /* 15 Points */
 int instruction_decode(unsigned op, struct_controls *controls) 
 {
-	/* ALL THE OP CODES IN BINARY WILL CONVERT TO HEX AT LATER DATE WHEN IMPLEMENTED 
+	switch( op )
+	{
+		case 0x0:
+		{// addition or don't care
+			
+		}
+		case 0x1:
+		{
+			
+		}
+		case 0x2:
+		{
+			
+		}
+		case 0x3:
+		{
+			
+		}
+		case 0x4:
+		{
+			
+		}
+		case 0x5:
+		{
+			
+		}
+		case 0x6:
+		{
+			
+		}
+		case 0x7:
+		{
+			
+		}	
+	}// end of switch 
 	
-		000     addition or don't care
-		001 	do subtraction
-		010		set on less than
-		011		set less than unsigned
-		100		and operator
-		101		or operator
-		110 	shift left extended value by 16 bits
-		111		this is an R type instruction */
+	
+	
+	/* ALL THE OP CODES IN HEX  
+	
+		0x0     addition or don't care
+		0x1 	do subtraction
+		0x2		set on less than
+		0x3		set less than unsigned
+		0x4		and operator
+		0x5		or operator
+		0x6 	shift left extended value by 16 bits
+		0x7		this is an R type instruction */
 		
 	/*take in the op code and see if the instruction is an 
 	R , I, or J type and 
@@ -166,6 +204,7 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 /* 10 Points */
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem) 
 {
+	
 	return 0;
 }
 
