@@ -85,7 +85,6 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, uns
 		*funct = instruction & 0x3F;
 	}
 
-
 	/* J-Type */
 	else if (*op == 0x10) { // if jump 
 		*jsec = (instruction & 0x3FFFFFF);
@@ -130,47 +129,37 @@ int instruction_decode(unsigned op, struct_controls *controls)
 			
 		}
 		case 0x1:
-		{
+		{// subtraction
 			
 		}
 		case 0x2:
-		{
+		{// set on less than
 			
 		}
 		case 0x3:
-		{
+		{//set less than unsigned
 			
 		}
 		case 0x4:
-		{
-			
+		{//and operator 
+ 			
 		}
 		case 0x5:
-		{
+		{// or operator		
 			
 		}
 		case 0x6:
-		{
+		{ // shift left extended by 16 bits
 			
 		}
 		case 0x7:
-		{
+		{ // rtypes 
 			
 		}	
 	}// end of switch 
 	
 	
 	
-	/* ALL THE OP CODES IN HEX  
-	
-		0x0     addition or don't care
-		0x1 	do subtraction
-		0x2		set on less than
-		0x3		set less than unsigned
-		0x4		and operator
-		0x5		or operator
-		0x6 	shift left extended value by 16 bits
-		0x7		this is an R type instruction */
 		
 	/*take in the op code and see if the instruction is an 
 	R , I, or J type and 
@@ -219,7 +208,20 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 /* 10 Points */
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem) 
 {
-	
+	if( MemRead && MemWrite)
+	{// if both are assered then this is a don't care and return 0
+		return 0;
+	}
+	else if(MemRead)
+	{// if 1 then asserted if 0 the de-asserted
+		unsigned newLoc = ALUresult<<; /* to change ALUresult 
+			to a word indicated at its location */
+		*memdata = Mem[newLoc];
+	}
+	else if(MemWrite)
+	{// 1 for asserted and 0 for de-asserted
+		newLoc = data2;
+	}
 	return 0;
 }
 
