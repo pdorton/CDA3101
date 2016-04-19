@@ -3,7 +3,7 @@
 /* ALU */ /* 10 Points */
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero) 
 {
-	switch (ALUControl)	{
+	switch (ALUControl) {
 	case 0x0:		// Add A + B  || don't care??
 		*ALUresult = A + B;
 		break;
@@ -35,81 +35,92 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 	}
 }
 
-
-/* instruction fetch */ /* 10 Points */
-int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction) 
+/*
+If one of the following situations is encountered, the global flag Halt is set to 1, and hence the simulation halts.
+ 	An illegal instruction is encountered.
+ 	Jumping to an address that is not word-aligned (being multiple of 4).
+ 	The address of lw or sw is not word-aligned.
+  	Accessing data or jump to address that is beyond the memory.
+Note: The instructions beyond the list of instructions in Figure 1 are illegal.
+*/
+int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 {
-	/* Need to make sure that *instruction is of type HEX (0x); 
-	   if not then convert from decimal to hex */
-
-    // PC is counter (0x4000)
-    //*Mem is memory location (use 4* *MEM + PC for intended location)
-    // *instruction is the HEX value being passed for action
-	unsigned *op = NULL, 
-		*r1 = NULL,
-		*r2 = NULL,
-		*r3 = NULL,
-		*funct = NULL,
-		*offset = NULL,
-		*jsec = NULL;
-	instruction_partition(*instruction, op, r1, r2, r3, funct, offset, jsec);
-    /* instruction_decode() */
+	// No halt condition has been met here. This needs to be addressed
+	*instruction = *Mem + 4 * PC;
+	return 0;
 }
 
-
-/* instruction partition */ /* 10 Points */
-void instruction_partition(unsigned instruction, unsigned *op, unsigned r1, unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
+/*
+1.	Fetch the instruction addressed by PC from Mem and write it to instruction.
+2.	Return 1 if a halt condition occurs; otherwise, return 0.
+*/
+void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
+	/* Required Instructions
+	Hex			Command				Type
+	0x000000 // add					R
+	0x000000 // sub					R
+	0x001000 // addi				I
+	0x000000 // and					R
+	0x000000 // or					R
+	0x100011 // lw load word		I
+	0x101011 // sw store word		I
+	0x001111 // lui					I
+	0x000100 // branch on eq		I
+	0x000000 // slt					R
+	0x001010 // slti				I
+	0x000000 // sltu				R
+	0x001011 // sltiu				I
+	0x000010 // jump				J
+	*/
+
 	*op = instruction >> 26;
-	/* R-Type */// op|6   rs|5   rt|5   rd|5   shamt|5   funct|6
-	if (*op == 0x0) { // this is a r-type
-		r1 = ((instruction >> 21) & 0x1F);
+
+	/* R-Type */
+	if (*op == 0x0) {
+		*r1 = ((instruction >> 21) & 0x1F);
 		*r2 = ((instruction >> 16) & 0x1F);
-		*r3 = ((instruction >> 11) & 0x1F); 
+		*r3 = ((instruction >> 11) & 0x1F);
 		*offset = ((instruction >> 6) & 0x1F);
 		*funct = instruction & 0x3F;
 	}
 
 
-	/* J-Type */// op|6   address|26 
-	else if(*op == 0x000010 || *op == 0x000011) { // if jump ot jump link
-		// address = (instruction & 0x3FFFFFF);
+	/* J-Type */
+	else if (*op == 0x10) { // if jump 
+		*jsec = (instruction & 0x3FFFFFF);
 	}
-	else if 
+
 	/* I-Type */
-	// op|6   rs|5   rt|5   conts/addy|16
-	
-	/*
-	2x 0x000000 // R-Type 
+	else if (*op == 0x001000 || // addi
+		*op == 0x100011 || // lw
+		*op == 0x101011 || // sw
+		*op == 0x001111 || // lui
+		*op == 0x000100 || // beq
+		*op == 0x001010 || // slti
+		*op == 0x001011) { // sltui 
+		*r1 = ((instruction >> 21) & 0x1F);
+		*r2 = ((instruction >> 16) & 0x1F);
+		*jsec = instruction & 0xFFFF;
+	}
 
-	0x000010 // jump				J
-	0x000011 // jump link			J
-	0x000100 // branch if eq		I
-	0x000101 // branch not eq		I
-	0x001000 // addi				R
-	0x001001 // addiu				R
-	0x001010 // slti				I
-	0x001011 // sltiu				I
-	0x001100 // andi				I		
-	0x001101 // ori					I
-	0x001111 // lui					I	
-	0x100000 // lb load byte		I
-	0x100001 // lh load half		I
-	0x100011 // lw load word		I
-	0x100100 // lbu					I
-	0x100101 // lhu					I
-	0x101000 // sb store byte		I
-	0x101001 // sh store half		I
-	0x101011 // sw store word		I
-	0x110001 // lwcl				I
-	0x111001 // swcl				I
-	*/
-
-
+	/* Unsupported Op Code */
+	else
+	{
+		// bad op code
+	}
 }
 
 
-/* instruction decode */ /* 15 Points */
+/*
+1.	Decode the instruction using the opcode (op).
+2.	Assign the values of the control signals to the variables in the structure controls (See spimcore.h file).
+The meanings of the values of the control signals:
+For MemRead, MemWrite or RegWrite, the value 1 means that enabled, 0 means that disabled, 2 means �don�t care�.
+For RegDst, Jump, Branch, MemtoReg or ALUSrc, the value 0 or 1 indicates the selected path of the multiplexer; 2 means �don�t care�.
+The following table shows the meaning of the values of ALUOp.
+3.	Return 1 if a halt condition occurs; otherwise, return 0.
+*/
 int instruction_decode(unsigned op, struct_controls *controls) 
 {
 	switch( op )
@@ -173,7 +184,9 @@ int instruction_decode(unsigned op, struct_controls *controls)
 }
 
 
-/* Read Register */ /* 5 Points */
+/*
+1.	Read the registers addressed by r1 and r2 from Reg, and write the read values to data1 and data2 respectively.
+*/
 void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2) 
 {
 	*data1 = r1; // assign r1 to data 1 
@@ -182,7 +195,9 @@ void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, uns
 }
 
 
-/* Sign Extend */ /* 10 Points */
+/*
+1.	Assign the sign-extended value of offset to extended_value.
+*/
 void sign_extend(unsigned offset, unsigned *extended_value) 
 {
 	int first_digit = offset >> 15;
