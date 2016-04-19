@@ -30,7 +30,7 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 		*ALUresult = B >> 16;
 		break;
 	case 0x7:		// Z = NOT A
-		*Zero = !A;
+		*Zero = !A; // think this needs to be a ~A instead of !A because ~A is the binary inverter operator
 		break;
 	}
 }
