@@ -1,6 +1,11 @@
 
 #include "spimcore.h"
-/* ALU */ /* 10 Points */
+/* ALU 
+1.	Implement the operations on input parameters A and B according to ALUControl.
+2.	Output the result (Z) to ALUresult.
+3.	Assign Zero to 1 if the result is zero; otherwise, assign 0.
+4.	The following table shows the operations of the ALU.
+*/
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero) 
 {
 	switch (ALUControl) {
@@ -11,28 +16,31 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 		*ALUresult = A - B;
 		break;
 	case 0x2:		// if A < B, Z = 1; else Z = 0;
-		*Zero = 0;
+		*ALUresult = 0;
 		if (A < B)
-			*Zero = 1;
+			*ALUresult = 1;
 		break;
 	case 0x3:		// if A < B, Z = 1; else Z = 0 (A and B are unsigned)
-		*Zero = 0;
+		*ALUresult = 0;
 		if (A < B)
-			*Zero = 1;
+			*ALUresult = 1;
 		break;
 	case 0x4:		// Z = A AND B
-		*Zero = A & B;
+		*ALUresult = A & B;
 		break;
 	case 0x5:		// Z = A OR B
-		*Zero = A | B;
+		*ALUresult = A | B;
 		break;
 	case 0x6:		// Shift left B by 16 bits
 		*ALUresult = B >> 16;
 		break;
 	case 0x7:		// Z = NOT A
-		*Zero = !A;
+		*ALUresult = ~A;
 		break;
 	}
+	if(ALUresult * 0x0)
+		*Zero = 1;
+	*Zero = 0;
 }
 
 /*
@@ -105,9 +113,8 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, uns
 
 	/* Unsupported Op Code */
 	else
-	{
-		// bad op code
-	}
+		return 1; // hey that's bad HALT!
+	return 0; // everything is okay
 }
 
 
@@ -122,8 +129,28 @@ The following table shows the meaning of the values of ALUOp.
 */
 int instruction_decode(unsigned op, struct_controls *controls) 
 {
+
+	/*
+	{	
+		Below these controls need to be set to 1 or 0 according to the instruction
+		that is being read in from the op code except for RegDest which is an address:
+		
+		char RegDst; 
+		char Jump; 
+		char Branch; 
+		char MemRead; 
+		char MemtoReg; 
+		char ALUOp; 
+		char MemWrite; 
+		char ALUSrc; 
+		char RegWrite; 
+	}struct_controls;
+	*/
+	
 	switch( op )
 	{
+		
+		
 		case 0x0:
 		{// addition or don't care
 			
@@ -162,9 +189,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	
 		
 	/*take in the op code and see if the instruction is an 
-	R , I, or J type and 
-	
-	set op codes 
+	R , I, or J type and set op codes 
 	1 : enabled
 	0 : Disabled 
 	2 : Don't Care */
@@ -180,7 +205,6 @@ void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, uns
 {
 	*data1 = r1; // assign r1 to data 1 
 	*data2 = r2; // assign r2 to data 2
-// two lines of code
 }
 
 
@@ -234,5 +258,7 @@ void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresu
 /* PC update */ /* 10 Points */
 void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, char Zero, unsigned *PC) 
 {
-
+	if(Jump)
+		*PC = jsec*4;
+	if(Branch )
 }
