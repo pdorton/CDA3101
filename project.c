@@ -36,6 +36,7 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 		break;
 	case 0x7:		// Z = NOT A
 		*ALUresult = ~A;
+
 		break;
 	}
 	if(ALUresult * 0x0)
