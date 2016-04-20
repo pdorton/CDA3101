@@ -113,6 +113,15 @@ int instruction_decode(unsigned op, struct_controls *controls)
 */
 	switch((signed) *op) {
 		case 0: // r-type
+			*controls->RegDst = 1;
+			*controls->ALUSrc = 0;
+			*controls->MemtoReg = 0;
+			*controls->RegWrite = 1;
+			*controls->MemRead = 0;
+			*controls->MemWrite = 0; 
+			*controls->Jump = 0;
+			*controls->Branch = 0;
+			*controls->ALUOp = 2;
 			break;
 		case 8: // addi
 			*controls->RegDst = 0;
@@ -122,21 +131,30 @@ int instruction_decode(unsigned op, struct_controls *controls)
 			*controls->MemtoReg = 0;
 			*controls->ALUOp = 0;
 			*controls->MemWrite = 0; 
-			*controls->ALUSrc = 1; // because it's an i typ[e]
+			*controls->ALUSrc = 1; // because it's an i type
 			*controls->RegWrite = 1;
 			break;
 		case 35: 	// lw
 			*controls->RegDst = 0;
+			*controls->ALUSrc = 1;
+			*controls->MemtoReg = 1;
+			*controls->RegWrite = 1;
+			*controls->MemRead = 1;
+			*controls->MemWrite = 0; 
 			*controls->Jump = 0;
 			*controls->Branch = 0;
-			*controls->MemRead = 0;
-			*controls->MemtoReg = 0;
 			*controls->ALUOp = 0;
-			*controls->MemWrite = 0; 
-			*controls->ALUSrc = 1; // because it's an i typ[e]
-			*controls->RegWrite = 1;
 			break;
 		case 43: 	// sw
+			*controls->RegDst = 2;
+			*controls->ALUSrc = 1;
+			*controls->MemtoReg = 2;
+			*controls->RegWrite = 0;
+			*controls->MemRead = 0;
+			*controls->MemWrite = 1; 
+			*controls->Jump = 0;
+			*controls->Branch = 0;
+			*controls->ALUOp = 0;
 			break;
 		case 15:c 	// lui
 			break;
@@ -161,52 +179,6 @@ int instruction_decode(unsigned op, struct_controls *controls)
 			return 1;
 			break;
 	}
-		
-
-	/* R-Type */
-	if (*op == 0x0) 
-	{ // why would you not move this to the 0x0000000 switch case? 
-		*controls->RegDst = 1;
-		*controls->ALUSrc = 0;
-		*controls->MemtoReg = 0;
-		*controls->RegWrite = 1;
-		*controls->MemRead = 0;
-		*controls->MemWrite = 0; 
-		*controls->Branch = 0;
-		*controls->Jump = 0;
-		*controls->ALUOp = 1;
-	}
-
-	/* LW */
-	/* LW */
-	
-	else if (*op == 0x10) 
-	{ // if jump 
-		*jsec = (instruction & 0x3FFFFFF);
-	}
-
-	/* I-Type */
-	else if (*op == 0x001000 || // addi
-		*op == 0x100011 || // lw
-		*op == 0x101011 || // sw
-		*op == 0x001111 || // lui
-		*op == 0x000100 || // beq
-		*op == 0x001010 || // slti
-		*op == 0x001011) 
-		{ // sltui 
-			*r1 = ((instruction >> 21) & 0x1F);
-			*r2 = ((instruction >> 16) & 0x1F);
-			*jsec = instruction & 0xFFFF;
-		}
-
-	/* Unsupported Op Code */
-	else
-		return 1; // hey that's bad HALT!
-	return 0; // everything is okay
-	
-	/*why have a second? if the else doesn't hit then it will return 0 with the one after this so I think its not needed. */
-	
-	return 0;
 }
 
 void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2) 
