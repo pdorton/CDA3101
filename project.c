@@ -150,7 +150,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 
 	/* R-Type */
 	if (*op == 0x0) 
-	{
+	{ // why would you not move this to the 0x0000000 switch case? 
 		*controls->RegDst = 1;
 		*controls->ALUSrc = 0;
 		*controls->MemtoReg = 0;
