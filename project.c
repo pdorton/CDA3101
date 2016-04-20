@@ -7,33 +7,33 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 		2.	Output the result (Z) to ALUresult.
 		3.	Assign Zero to 1 if the result is zero; otherwise, assign 0.
 	*/
-	switch (ALUControl) {
-	case 0x0:		// Add A + B  || don't care??
+	switch ( (signed)ALUControl) {
+	case 0:		// Add A + B  || don't care??
 		*ALUresult = A + B;
 		break;
-	case 0x1:		// A - B
+	case 1:		// A - B
 		*ALUresult = A - B;
 		break;
-	case 0x2:		// if A < B, Z = 1; else Z = 0;
+	case 2:		// if A < B, Z = 1; else Z = 0;
 		*ALUresult = 0;
 		if (A < B)
 			*ALUresult = 1;
 		break;
-	case 0x3:		// if A < B, Z = 1; else Z = 0 (A and B are unsigned)
+	case 3:		// if A < B, Z = 1; else Z = 0 (A and B are unsigned)
 		*ALUresult = 0;
 		if (A < B)
 			*ALUresult = 1;
 		break;
-	case 0x4:		// Z = A AND B
+	case 4:		// Z = A AND B
 		*ALUresult = A & B;
 		break;
-	case 0x5:		// Z = A OR B
+	case 5:		// Z = A OR B
 		*ALUresult = A | B;
 		break;
-	case 0x6:		// Shift left B by 16 bits
+	case 6:		// Shift left B by 16 bits
 		*ALUresult = B >> 16;
 		break;
-	case 0x7:		// Z = NOT A
+	case 7:		// Z = NOT A
 		*ALUresult = ~A;
 		break;
 	}
@@ -77,9 +77,6 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, uns
 }
 
 
-
-
-
 int instruction_decode(unsigned op, struct_controls *controls) 
 {
 	/*
@@ -114,10 +111,10 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	i-type will always require ALUsrc which is enabled on a sign extended.
 	j-type will not be sign extended
 */
-	switch(op) {
-		case 0x000000: // r-type
+	switch((signed) *op) {
+		case 0: // r-type
 			break;
-		case 0x001000: // addi
+		case 8: // addi
 			*controls->RegDst = 0;
 			*controls->Jump = 0;
 			*controls->Branch = 0;
@@ -128,21 +125,39 @@ int instruction_decode(unsigned op, struct_controls *controls)
 			*controls->ALUSrc = 1; // because it's an i typ[e]
 			*controls->RegWrite = 1;
 			break;
-		case 0x100011:
+		case 35: 	// lw
+			*controls->RegDst = 0;
+			*controls->Jump = 0;
+			*controls->Branch = 0;
+			*controls->MemRead = 0;
+			*controls->MemtoReg = 0;
+			*controls->ALUOp = 0;
+			*controls->MemWrite = 0; 
+			*controls->ALUSrc = 1; // because it's an i typ[e]
+			*controls->RegWrite = 1;
 			break;
-		case 0x101011:
+		case 43: 	// sw
 			break;
-		case 0x001111:
+		case 15:c 	// lui
 			break;
-		case 0x000100:
+		case 4:		// beq
+			*controls->RegDst = 2;
+			*controls->ALUSrc = 0;
+			*controls->MemtoReg = 2;
+			*controls->RegWrite = 0;
+			*controls->MemRead = 0;
+			*controls->MemWrite = 0; 
+			*controls->Jump = 0;
+			*controls->Branch = 1;
+			*controls->ALUOp = 1;
 			break;
-		case 0x001010:
+		case 10:	// slti
 			break;
-		case 0x001011:
+		case 11:	// sltiu
 			break;
-		case 0x000010:
+		case 2:		// jump
 			break;
-		default:
+		default:	// unsupported op code
 			return 1;
 			break;
 	}
