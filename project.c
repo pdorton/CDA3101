@@ -111,18 +111,8 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	i-type will always require ALUsrc which is enabled on a sign extended.
 	j-type will not be sign extended
 */
-	switch((signed) *op) 
-	{
-		case 0: // r-type    add sub and or and slt sltu all the same op decodes 
-			*controls->RegDst = 1;
-			*controls->ALUSrc = 0;
-			*controls->MemtoReg = 0;
-			*controls->RegWrite = 1;
-			*controls->MemRead = 0;
-			*controls->MemWrite = 0; 
-			*controls->Branch = 0;
-			*controls->Jump = 0;
-			*controls->ALUOp = 1;
+	switch((signed) *op) {
+		case 0: // r-type
 			break;
 		case 8: // addi
 			*controls->RegDst = 0;
@@ -139,34 +129,16 @@ int instruction_decode(unsigned op, struct_controls *controls)
 			*controls->RegDst = 0;
 			*controls->Jump = 0;
 			*controls->Branch = 0;
-			*controls->MemRead = 1; // this should be a 1
-			*controls->MemtoReg = 1;// this should be a 1 
+			*controls->MemRead = 0;
+			*controls->MemtoReg = 0;
 			*controls->ALUOp = 0;
 			*controls->MemWrite = 0; 
 			*controls->ALUSrc = 1; // because it's an i typ[e]
 			*controls->RegWrite = 1;
 			break;
-		case 43: 	// sw    
-			*controls->RegDst = 2; // dont care
-			*controls->ALUSrc = 1;
-			*controls->MemtoReg = 2;// dont care
-			*controls->RegWrite = 0;
-			*controls->MemRead = 0;
-			*controls->MemWrite = 1; 
-			*controls->Branch = 0;
-			*controls->Jump = 0;
-			*controls->ALUOp = 0;
+		case 43: 	// sw
 			break;
-		case 15: 	// lui
-			*controls->RegDst = ;
-			*controls->ALUSrc = ;
-			*controls->MemtoReg = ;
-			*controls->RegWrite = ;
-			*controls->MemRead = ;
-			*controls->MemWrite = ; 
-			*controls->Branch = ;
-			*controls->Jump = ;
-			*controls->ALUOp = ;
+		case 15:c 	// lui
 			break;
 		case 4:		// beq
 			*controls->RegDst = 2;
@@ -177,50 +149,33 @@ int instruction_decode(unsigned op, struct_controls *controls)
 			*controls->MemWrite = 0; 
 			*controls->Jump = 0;
 			*controls->Branch = 1;
-			*controls->ALUOp = 1; // gotta change the ALUops 
+			*controls->ALUOp = 1;
 			break;
 		case 10:	// slti
-			*controls->RegDst =  ;
-			*controls->ALUSrc = ;
-			*controls->MemtoReg = ;
-			*controls->RegWrite = ;
-			*controls->MemRead = ;
-			*controls->MemWrite = ; 
-			*controls->Branch = ;
-			*controls->Jump = ;
-			*controls->ALUOp = ;
 			break;
 		case 11:	// sltiu
-			*controls->RegDst = ;
-			*controls->ALUSrc = ;
-			*controls->MemtoReg = ;
-			*controls->RegWrite = ;
-			*controls->MemRead = ;
-			*controls->MemWrite = ; 
-			*controls->Branch = ;
-			*controls->Jump = ;
-			*controls->ALUOp = ;
 			break;
 		case 2:		// jump
-			*controls->RegDst = 0;
-			*controls->ALUSrc = 0;
-			*controls->MemtoReg = 0;
-			*controls->RegWrite = 0;
-			*controls->MemRead = 0;
-			*controls->MemWrite = 0; 
-			*controls->Branch = 0;
-			*controls->Jump = 1;
-			*controls->ALUOp = 1;  // not sure about my ALU OPs 
 			break;
-		
-
 		default:	// unsupported op code
 			return 1;
 			break;
 	}
 		
 
-	
+	/* R-Type */
+	if (*op == 0x0) 
+	{ // why would you not move this to the 0x0000000 switch case? 
+		*controls->RegDst = 1;
+		*controls->ALUSrc = 0;
+		*controls->MemtoReg = 0;
+		*controls->RegWrite = 1;
+		*controls->MemRead = 0;
+		*controls->MemWrite = 0; 
+		*controls->Branch = 0;
+		*controls->Jump = 0;
+		*controls->ALUOp = 1;
+	}
 
 	/* LW */
 	/* LW */
