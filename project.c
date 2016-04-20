@@ -149,7 +149,8 @@ int instruction_decode(unsigned op, struct_controls *controls)
 		
 
 	/* R-Type */
-	if (*op == 0x0) {
+	if (*op == 0x0) 
+	{
 		*controls->RegDst = 1;
 		*controls->ALUSrc = 0;
 		*controls->MemtoReg = 0;
@@ -164,7 +165,8 @@ int instruction_decode(unsigned op, struct_controls *controls)
 	/* LW */
 	/* LW */
 	
-	else if (*op == 0x10) { // if jump 
+	else if (*op == 0x10) 
+	{ // if jump 
 		*jsec = (instruction & 0x3FFFFFF);
 	}
 
@@ -175,21 +177,19 @@ int instruction_decode(unsigned op, struct_controls *controls)
 		*op == 0x001111 || // lui
 		*op == 0x000100 || // beq
 		*op == 0x001010 || // slti
-		*op == 0x001011) { // sltui 
-		*r1 = ((instruction >> 21) & 0x1F);
-		*r2 = ((instruction >> 16) & 0x1F);
-		*jsec = instruction & 0xFFFF;
-	}
+		*op == 0x001011) 
+		{ // sltui 
+			*r1 = ((instruction >> 21) & 0x1F);
+			*r2 = ((instruction >> 16) & 0x1F);
+			*jsec = instruction & 0xFFFF;
+		}
 
 	/* Unsupported Op Code */
 	else
 		return 1; // hey that's bad HALT!
 	return 0; // everything is okay
-
 	
-	
-		
-	
+	/*why have a second? if the else doesn't hit then it will return 0 with the one after this so I think its not needed. */
 	
 	return 0;
 }
@@ -227,8 +227,7 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 	}
 	else if(MemRead)
 	{// if 1 then asserted if 0 the de-asserted
-		unsigned newLoc = ALUresult<<; /* to change ALUresult 
-			to a word indicated at its location */
+		unsigned newLoc = ALUresult<<; /* to change ALUresult to a word indicated at its location */
 		*memdata = Mem[newLoc];
 	}
 	else if(MemWrite)
