@@ -38,14 +38,15 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 			*ALUresult = ~A;
 			break;
 	}
-	if (ALUresult = 0)
+	if (ALUresult == 0)
 		*Zero = 1;
-	*Zero = 0;
+	else
+		*Zero = 0;
 }
 
 int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 {
-
+	printf("instruction fetch");
 	if ((signed)PC >= 0 && PC % 4 == 0 && (signed)PC <= 65535) {
 		*instruction = Mem[4 * PC];
 		return 0;
@@ -55,22 +56,25 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
-	const FIVE_BITS = 0x1F;
-	const SIX_BITS = 0x3F;
-	const SIXTEEN_BITS = 0xFFFF;
-	const TWENTYSIX_BITS = 0x3FFFFFF;
+		printf("instruction part");
+
+	const unsigned FIVE_BITS = 0x1F;
+	const unsigned SIX_BITS = 0x3F;
+	const unsigned SIXTEEN_BITS = 0xFFFF;
+	const unsigned TWENTYSIX_BITS = 0x3FFFFFF;
 	*op = ((instruction >> 26) & SIX_BITS);
 	*r1 = ((instruction >> 21) & FIVE_BITS);
 	*r2 = ((instruction >> 16) & FIVE_BITS);
 	*r3 = ((instruction >> 11) & FIVE_BITS);
-	*funct = instruction & SIX_BITS);
+	*funct = instruction & SIX_BITS;
 	*offset = instruction & SIXTEEN_BITS;
-	*jsec = instruction & TWENTYSIX_BITS);
+	*jsec = instruction & TWENTYSIX_BITS;
 }
 
 
 int instruction_decode(unsigned op, struct_controls *controls)
 {
+	printf("instruction decode");
 
 	switch (op) {
 	case 0:
