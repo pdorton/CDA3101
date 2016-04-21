@@ -236,17 +236,27 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem) 
 {
+	if(ALUresult % 4 != 0)
+
 	if( MemRead && MemWrite)
 	{// if both are assered then this is a don't care and return 0
 		return 0;
 	}
 	else if(MemRead)
 	{// if 1 then asserted if 0 the de-asserted
+		if(ALUresult % 4 != 0)
+		{// if the ALUresult is not a proper address then halt
+			return 1;
+		}
 		unsigned newLoc = ALUresult<<; /* to change ALUresult to a word indicated at its location */
 		*memdata = Mem[newLoc];
 	}
 	else if(MemWrite)
 	{// 1 for asserted and 0 for de-asserted
+		if(ALUresult % 4 != 0)
+		{// if the ALUresult is not a proper address then halt
+			return 1;
+		}
 		newLoc = data2;
 	}
 	return 0;
@@ -254,6 +264,7 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 
 void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg) 
 {
+	
 	// write all data to ALUresult or memdata to a register addressed by r2 or r3
 }
 
