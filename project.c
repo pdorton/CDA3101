@@ -1,67 +1,66 @@
 #include "spimcore.h"
 
-void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero) 
+void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
-	/* ALU 
+	/* ALU
 		1.	Implement the operations on input parameters A and B according to ALUControl.
 		2.	Output the result (Z) to ALUresult.
 		3.	Assign Zero to 1 if the result is zero; otherwise, assign 0.
 	*/
-	switch ( (signed)ALUControl) {
-	case 0:		// Add A + B  || don't care??
-		*ALUresult = A + B;
-		break;
-	case 1:		// A - B
-		*ALUresult = A - B;
-		break;
+	switch ((signed)ALUControl) {
+		case 0:		// Add A + B
+			*ALUresult = A + B;
+			break;
+		case 1:		// A - B
+			*ALUresult = A - B;
+			break;
+		case 2:		// if A < B, Z = 1; else Z = 0;
+			if (!(A & (1 << 31)) && !(B & (1 << 31)))
+				*ALUresult = (A < B) ? 1 : 0;
+			else if ((A & (1 << 31)) && (B &(1 << 31)))
+				*ALUresult = (A > B) ? 1 : 0;
+			else if (!(A & (1 << 31)) && (B & (1 << 31)))
+				*ALUresult = 0;
+			else
+				*ALUresult = 1;
+			break;
 
-	case 2:		// if A < B, Z = 1; else Z = 0;
-		if( !(A & (1 << 31)) && !(B & (1 << 31)) )
-			*ALUresult = ( A < B ) ? 1 : 0;
-		else if( (A & (1 << 31)) && (B &(1 << 31)) )
-			*ALUresult = (A > B) ? 1 : 0;
-		else if(!(A & (1 << 31)) && (B & (1 << 31)) )
+		case 3:		// if A < B, Z = 1; else Z = 0 (A and B are unsigned)
 			*ALUresult = 0;
-		else
-			*ALUresult = 1;
-		break;
-
-	case 3:		// if A < B, Z = 1; else Z = 0 (A and B are unsigned)
-		*ALUresult = 0;
-		if (A < B)
-			*ALUresult = 1;
-		break;
-	case 4:		// Z = A AND B
-		*ALUresult = A & B;
-		break;
-	case 5:		// Z = A OR B
-		*ALUresult = A | B;
-		break;
-	case 6:		// Shift left B by 16 bits
-		*ALUresult = B << 16;
-		break;
-	case 7:		// Z = NOT A
-		*ALUresult = ~A;
-		break;
+			if (A < B)
+				*ALUresult = 1;
+			break;
+		case 4:		// Z = A AND B
+			*ALUresult = A & B;
+			break;
+		case 5:		// Z = A OR B
+			*ALUresult = A | B;
+			break;
+		case 6:		// Shift left B by 16 bits
+			*ALUresult = B << 16;
+			break;
+		case 7:		// Z = NOT A
+			*ALUresult = ~A;
+			break;
 	}
-	if(ALUresult = 0)
+	if (ALUresult = 0)
 		*Zero = 1;
 	*Zero = 0;
 }
 
 int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 {
-	/* 
+	/*
 		If one of the following situations is encountered, the global flag Halt is set to 1, and hence the simulation halts.
 		An illegal instruction is encountered.
 		Jumping to an address that is not word-aligned (being multiple of 4).
 		The address of lw or sw is not word-aligned.
 		Accessing data or jump to address that is beyond the memory.
-		Note: The instructions beyond the list of instructions in Figure 1 are illegal. 
+		Note: The instructions beyond the list of instructions in Figure 1 are illegal.
 		greater than or equal than 0, within range, and PC mod 4  = 0;
 		PC needs to be cast to signed to compare to the decimal values
 	*/
-	if((signed) PC >= 0 && PC % 4 == 0 && (signed) PC <= 65535) {
+	if ((signed)PC >= 0 && PC % 4 == 0 && (signed)PC <= 65535) {
 		*instruction = Mem[4 * PC];
 		return 0;
 	}
@@ -73,7 +72,7 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, uns
 	const 5_BITS = 0x1F;
 	const 6_BITS = 0x3F;
 	const 16_BITS = 0xFFFF;
-	const 26_BITS = 0x3FFFFFF;	
+	const 26_BITS = 0x3FFFFFF;
 	*op = ((instruction >> 26) & 6_BITS);
 	*r1 = ((instruction >> 21) & 5_BITS);
 	*r2 = ((instruction >> 16) & 5_BITS);
@@ -84,7 +83,7 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, uns
 }
 
 
-int instruction_decode(unsigned op, struct_controls *controls) 
+int instruction_decode(unsigned op, struct_controls *controls)
 {
 	/*
 		1.	Decode the instruction using the opcode (op).
@@ -95,7 +94,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 		The following table shows the meaning of the values of ALUOp.
 		3.	Return 1 if a halt condition occurs; otherwise, return 0.
 	*/
-	
+
 	/* Required Instructions
 		Hex			Command				Type
 		0x000000 // add					R
@@ -112,204 +111,215 @@ int instruction_decode(unsigned op, struct_controls *controls)
 		0x001010 // slti				I
 		0x001011 // sltiu				I
 		0x000010 // jump				J
-	
-	
+
+
 	Notes
 	i-type will always require ALUsrc which is enabled on a sign extended.
 	j-type will not be sign extended
 */
-	switch((signed) *op) {
-		case 0: // r-type
-			*controls->RegDst = 1;
-			*controls->ALUSrc = 0;
-			*controls->MemtoReg = 0;
-			*controls->RegWrite = 1;
-			*controls->MemRead = 0;
-			*controls->MemWrite = 0; 
-			*controls->Jump = 0;
-			*controls->Branch = 0;
-			*controls->ALUOp = 2;
-			break;
-		case 8: // addi
-			*controls->RegDst = 0;
-			*controls->Jump = 0;
-			*controls->Branch = 0;
-			*controls->MemRead = 0;
-			*controls->MemtoReg = 0;
-			*controls->ALUOp = 0;
-			*controls->MemWrite = 0; 
-			*controls->ALUSrc = 1; // because it's an i type
-			*controls->RegWrite = 1;
-			break;
-		case 35: 	// lw
-			*controls->RegDst = 0;
-			*controls->ALUSrc = 1;
-			*controls->MemtoReg = 1;
-			*controls->RegWrite = 1;
-			*controls->MemRead = 1;
-			*controls->MemWrite = 0; 
-			*controls->Jump = 0;
-			*controls->Branch = 0;
-			*controls->ALUOp = 0;
-			break;
-		case 43: 	// sw
-			*controls->RegDst = 2;
-			*controls->ALUSrc = 1;
-			*controls->MemtoReg = 2;
-			*controls->RegWrite = 0;
-			*controls->MemRead = 0;
-			*controls->MemWrite = 1; 
-			*controls->Jump = 0;
-			*controls->Branch = 0;
-			*controls->ALUOp = 0;
-			break;
-		case 15:c 	// lui
-			break;
-		case 4:		// beq
-			*controls->RegDst = 2;
-			*controls->ALUSrc = 0;
-			*controls->MemtoReg = 2;
-			*controls->RegWrite = 0;
-			*controls->MemRead = 0;
-			*controls->MemWrite = 0; 
-			*controls->Jump = 0;
-			*controls->Branch = 1;
-			*controls->ALUOp = 1;
-			break;
-		case 10:	// slti
-			break;
-		case 11:	// sltiu
-			break;
-		case 2:		// jump
-			break;
-		default:	// unsupported op code
-			return 1;
-			break;
+	switch (op) {
+	case 0: // r-type ++++++++++++++
+		controls->RegDst = 1;
+		controls->ALUSrc = 0;
+		controls->MemtoReg = 0;
+		controls->RegWrite = 1;
+		controls->MemRead = 0;
+		controls->MemWrite = 0;
+		controls->Jump = 0;
+		controls->Branch = 0;
+		controls->ALUOp = 2;
+		break;
+	case 8: // addi ++++++++++++++
+		controls->RegDst = 0;
+		controls->Jump = 0;
+		controls->Branch = 0;
+		controls->MemRead = 0;
+		controls->MemtoReg = 0;
+		controls->ALUOp = 0;
+		controls->MemWrite = 0;
+		controls->ALUSrc = 1; // because it's an i type
+		controls->RegWrite = 1;
+		break;
+	case 35: 	// lw ++++++++++++++
+		controls->RegDst = 0;
+		controls->ALUSrc = 1;
+		controls->MemtoReg = 1;
+		controls->RegWrite = 1;
+		controls->MemRead = 1;
+		controls->MemWrite = 0;
+		controls->Jump = 0;
+		controls->Branch = 0;
+		controls->ALUOp = 0;
+		break;
+	case 43: 	// sw ++++++++++++++
+		controls->RegDst = 2;
+		controls->ALUSrc = 1;
+		controls->MemtoReg = 2;
+		controls->RegWrite = 0;
+		controls->MemRead = 0;
+		controls->MemWrite = 1;
+		controls->Jump = 0;
+		controls->Branch = 0;
+		controls->ALUOp = 0;
+		break;
+	case 15: 	// lui --------------
+		controls->RegDst = 1; // asserted as writing to rt (slide Processor 48)
+		controls->ALUSrc = 1; // asserted for sign-extended 16 bits
+		controls->MemtoReg = 0;
+		controls->RegWrite = 1;
+		controls->MemRead = 0;
+		controls->MemWrite = 0;
+		controls->Jump = 0;
+		controls->Branch = 0;
+		controls->ALUOp = 2;
+		break;
+	case 4:		// beq ++++++++++++++
+		controls->RegDst = 2;
+		controls->ALUSrc = 0;
+		controls->MemtoReg = 2;
+		controls->RegWrite = 0;
+		controls->MemRead = 0;
+		controls->MemWrite = 0;
+		controls->Jump = 0;
+		controls->Branch = 1;
+		controls->ALUOp = 1;
+		break;
+	case 10:	// slti >>>>>>>>>>>>>>>
+        controls->RegDst = 1;
+		controls->RegWrite = 1;
+		controls->ALUSrc = 0;
+		controls->MemRead = 0;
+		controls->MemWrite = 0;
+		controls->MemtoReg = 0;
+		controls->Jump = 0;
+		controls->Branch = 0;
+		controls->ALUOp = 2;
+		break;
+	case 11:	// sltiu >>>>>>>>>>>>>>>
+		controls->RegDst = 1;
+		controls->RegWrite = 1;
+		controls->ALUSrc = 0;
+		controls->MemRead = 0;
+		controls->MemWrite = 0;
+		controls->MemtoReg = 0;
+		controls->Jump = 0;
+		controls->Branch = 0;
+		controls->ALUOp = 3;
+		break;
+	case 2:		// jump >>>>>>>>>>>>>>>>>
+		controls->RegDst = 0;
+		controls->RegWrite = 0;
+		controls->ALUSrc = 0;
+		controls->MemRead = 0;
+		controls->MemWrite = 0;
+		controls->MemtoReg = 0;
+		controls->Jump = 1;
+		controls->Branch = 0;
+		controls->ALUOp = 0;
+		break;
+	default:	// unsupported op code
+		return 1;
+		break;
 	}
 }
 
-void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2) 
+void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2)
 {
 	*data1 = Reg[r1]; // assign r1 to data 1 
 	*data2 = Reg[r2]; // assign r2 to data 2
 }
 
-void sign_extend(unsigned offset, unsigned *extended_value) 
+void sign_extend(unsigned offset, unsigned *extended_value)
 {
 	int first_digit = offset >> 15;
-	if ((signed) first_digit) // if negative then
+	if ((signed)first_digit) // if negative then
 		*extended_value = offset | 0xFFFF0000;	// OR with 32 bit with leading 16 1s 
 	else										// otherwise positive
 		*extended_value = offset | 0x00000000;	// OR with 0 which will return with leading 0s        
 }
 
 /* ALU operations */ /* 10 Points */
-int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsigned funct, char ALUOp, char ALUSrc, unsigned *ALUresult, char *Zero) 
+int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsigned funct, char ALUOp, char ALUSrc, unsigned *ALUresult, char *Zero)
 {
 	unsigned char ALUControl = ALUOp;
+	if (ALUSrc == 1)
+		data2 = extended_value;
 
-	switch(ALUOp)
-	{
-		case 0x0: // addition or don't care
-		case 0x1: // subtraction
-		case 0x2: // set less than signed
-		case 0x3: // set less than unsigned
-		case 0x4: // and
-		case 0x5: // or
-		case 0x6: // shift Extended_Value left by 16 bits
-			break;
-		case 0x7: // if R type 
-		{
-			switch(funct)
-			{
-				case 0x20: 
-				{// add
-					ALUControl = 0x0;
-					break;
-				}
-				case 0x24:
-				{// and
-					ALUControl = 0x4;
-					break;
-				}
-				case 0x25:
-				{// or
-					ALUControl = 0x5;
-					break;
-				}
-				case 0x2a:
-				{// set less than signed
-					ALUControl = 0x2;
-					break;
-				}
-				case 0x2b:
-				{// set less than unsigned
-					ALUControl = 0x3;
-					break;
-				}
-				default:
-				{// any invalid op
-					return 1 // halt
-				}
-			}
-			break;
-		}// end of R-type
-		default:
-		{// if invalid op
-			return 1; // halt
-		}
+	if(ALUControl == 7)
+		switch (funct) {
+			case 32: // add
+				ALUControl = 0;
+				break;
+			case 34: // subtract
+				ALUControl = 1;
+				break;
+			case 42: // set less than signed
+				ALUControl = 2;
+				break;
+			case 43: // set less than unsigned
+				ALUControl = 3;
+				break;
+			case 36: // and
+				ALUControl = 4;
+				break;
+			case 37: // or
+				ALUControl = 5;
+				break;
+			case 4: // shift left right variable
+				ALUControl = 6;
+				break;
+			case 39: // nor
+				ALUControl = 7;
+				break;
+			default: // any invalid op
+				return 1; // halt
 	}
-	if(ALUSrc == 1)
-	{
-		ALU(data1, Extended_Value, ALUControl, ALUresult, Zero);
-	}
-	else
-	{
-		ALU(data1, data2, ALUControl, ALUresult, Zero);
-	}
+	// call ALU for non-functions
+	ALU(data1, data2, ALUControl, ALUresult, Zero);
 	return 0;
 }
 
-int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem) 
+int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem)
 {
-	if(ALUresult % 4 != 0)
+	unsigned newLoc;
+	if (ALUresult % 4 != 0)
 
-	if( MemRead && MemWrite)
-	{// if both are assered then this is a don't care and return 0
+		if (MemRead && MemWrite)
+		{// if both are assered then this is a don't care and return 0
+			return 0;
+		}
+		else if (MemRead)
+		{// if 1 then asserted if 0 the de-asserted
+			if (ALUresult % 4 != 0)
+			{// if the ALUresult is not a proper address then halt
+				return 1;
+			}
+			unsigned newLoc = ALUresult << ; /* to change ALUresult to a word indicated at its location */
+			*memdata = Mem[newLoc];
+		}
+		else if (MemWrite)
+		{// 1 for asserted and 0 for de-asserted
+			if (ALUresult % 4 != 0)
+			{// if the ALUresult is not a proper address then halt
+				return 1;
+			}
+			newLoc = data2;
+		}
 		return 0;
-	}
-	else if(MemRead)
-	{// if 1 then asserted if 0 the de-asserted
-		if(ALUresult % 4 != 0)
-		{// if the ALUresult is not a proper address then halt
-			return 1;
-		}
-		unsigned newLoc = ALUresult<<; /* to change ALUresult to a word indicated at its location */
-		*memdata = Mem[newLoc];
-	}
-	else if(MemWrite)
-	{// 1 for asserted and 0 for de-asserted
-		if(ALUresult % 4 != 0)
-		{// if the ALUresult is not a proper address then halt
-			return 1;
-		}
-		newLoc = data2;
-	}
-	return 0;
 }
 
-void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg) 
+void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg)
 {// write all data to ALUresult or memdata to a register addressed by r2 or r3
 
-	if(RegWrite == 1)
+	if (RegWrite == 1)
 	{// Information being written to register
-		if(MemtoReg == 1)
+		if (MemtoReg == 1)
 		{// if the information is coming from memory
 			Reg[r2] = memdata; // instruction is I-Type so write to r2
 		}
-		else if(MemtoReg = 0)
+		else if (MemtoReg == 0)
 		{// then the information is coming from a register
-			if(RegDst == 1)
+			if (RegDst == 1)
 			{// if R-type then right to r3
 				Reg[r3] = ALUresult;
 			}
@@ -321,11 +331,16 @@ void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresu
 	}
 }
 
-void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, char Zero, unsigned *PC) 
+void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, char Zero, unsigned *PC)
 {
-	if(Jump)
-		*PC = jsec*4;
-	else if(Branch)
-		*PC + jsec * 4;
-	else *PC+=4;
+	//always increment by 4
+	*PC += 4;
+
+	//branch to new location
+	if (Zero && Branch)
+		*PC += extended_value << 2;
+
+	// jump to the register and multiply by 4 
+	else if (Jump)
+		*PC = (jsec << 2) | (*PC & 0xf0000000);
 }
