@@ -35,34 +35,34 @@ static int Halt = 0;
 static FILE *FP;
 static char *Redir = (char *) RedirNull;
 
-
-
+/*** DATAPATH Signals ***/
+// names of instruction sections
 unsigned instruction;
-unsigned op,	
-	r1,	
-	r2,	
-	r3,	
-	funct,	
-	offset,	
-	jsec;	
+unsigned op,	// instruction [31-26]
+	r1,	// instruction [25-21]
+	r2,	// instruction [20-16]
+	r3,	// instruction [15-11]
+	funct,	// instruction [5-0]
+	offset,	// instruction [15-0]
+	jsec;	// instruction [25-0]
 
-
+// control signals
 struct_controls controls;
 
-
+// Register output
 unsigned data1,data2;
 
-
+// sign extend
 unsigned extended_value;
 
-
+// ALU result
 unsigned ALUresult;
 char Zero;
 
-
+// data read from Memory
 unsigned memdata;
 
-
+/******/
 
 
 unsigned *Nreg(char *name)
@@ -106,41 +106,42 @@ void DisplayControlSignals(void)
 
 void Step(void)
 {
-	
+	/* fetch instruction from memory */
 	Halt = instruction_fetch(PC,Mem,&instruction);
 
 	if(!Halt)
 	{
-		
+		/* partition the instruction */
 		instruction_partition(instruction,&op,&r1,&r2,&r3,&funct,&offset,&jsec);
 
-		
+		/* instruction decode */
 		Halt = instruction_decode(op,&controls);
 	}
 
 	if(!Halt)
 	{
-		
+		/* read_register */
 		read_register(r1,r2,Reg,&data1,&data2);
 
-		
+		/* sign_extend */
 		sign_extend(offset,&extended_value);
 
-		
+		/* ALU */
 		Halt = ALU_operations(data1,data2,extended_value,funct,controls.ALUOp,controls.ALUSrc,&ALUresult,&Zero);
 	}
 
 	if(!Halt)
 	{
-		
+		/* read/write memory */
 		Halt = rw_memory(ALUresult,data2,controls.MemWrite,controls.MemRead,&memdata,Mem);
 	}
 
 	if(!Halt)
 	{
-		
+		/* write to register */
 		write_register(r2,r3,memdata,ALUresult,controls.RegWrite,controls.RegDst,controls.MemtoReg,Reg);
 
+		/* PC update */
 		PC_update(jsec,extended_value,controls.Branch,controls.Jump,Zero,&PC);
 	}
 }
@@ -159,6 +160,7 @@ void DumpReg(void)
 	}
 }
 
+// Dump Memory Content where the addresses are in decimal format
 void DumpMem(int from, int to)
 {
 	int i, mt, ma;
@@ -187,6 +189,8 @@ void DumpMem(int from, int to)
 	}
 }
 
+
+// Dump Memory Content in Hex format
 void DumpMemHex(int from, int to)
 {
 	int i, mt, ma;

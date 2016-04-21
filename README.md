@@ -2,5 +2,5 @@
 Final group Project
 
 
-Working on the project as of 9:30 am 4/18/2016
-finished work as of 10:28am
+Testing in progress - changes are going to be made please do not push to repo for time being
+- Jake
