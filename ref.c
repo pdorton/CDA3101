@@ -41,6 +41,8 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
         case 7:
             *ALUresult = ~A;
             break;
+		default:
+			break;
     }
     
     //Now check to see if the result is zero, and set the zero bit
