@@ -191,6 +191,16 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		validCode = 0;
 		break;
 	}
+	printf("\nregdest: \t%c\nregwrite : \t%c\nalusrc : \t%c\nmemread : \t%c\nmemwrite : \t%c	\nmemtoreg : \t%c\njump : \t%c\nbranch : \t%c\naluop : \t%d",
+		controls->RegDst,
+		controls->RegWrite,
+		controls->ALUSrc,
+		controls->MemRead,
+		controls->MemWrite,
+		controls->MemtoReg,
+		controls->Jump, 
+		controls->Branch,	
+		controls->ALUOp);
 	if (validCode)
 		return 0;
 	printf("HALTING\n");
