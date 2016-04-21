@@ -238,31 +238,28 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem)
 {
-	unsigned newLoc;
-	if (ALUresult % 4 != 0)
+	//if we are reading,
+	//Read data from ALUresult * 4 index in Memory.
+	if (MemRead == 1) {
+		if ((ALUresult % 4) == 0) {
+			*memdata = Mem[ALUresult >> 2];
+		}
+		else
+			return 1;
+	}
 
-		if (MemRead && MemWrite)
-		{
-			return 0;
+	//if we are writing,
+	//Write data to ALUresult * 4 index in Memory
+	//Word aligned
+	if (MemWrite == 1) {
+		if ((ALUresult % 4) == 0) {
+			Mem[ALUresult >> 2] = data2;
 		}
-		else if (MemRead)
-		{
-			if (ALUresult % 4 != 0)
-			{
-				return 1;
-			}
-			unsigned newLoc = ALUresult << 2;
-			*memdata = Mem[newLoc];
-		}
-		else if (MemWrite)
-		{
-			if (ALUresult % 4 != 0)
-			{
-				return 1;
-			}
-			newLoc = data2;
-		}
-		return 0;
+		else
+			return 1;
+	}
+
+	return 0;
 }
 
 void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg)
