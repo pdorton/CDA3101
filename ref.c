@@ -80,11 +80,12 @@ void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsi
 
 int instruction_decode(unsigned op,struct_controls *controls)
 {
-	printf("instruction decode\n");
+	printf("instruction decode: ");
 
 	int validCode = 1;
 	switch (op) {
 	case 0:
+	printf("r-type\n");
 		controls->RegDst = 1;
 		controls->ALUSrc = 0;
 		controls->MemtoReg = 0;
@@ -95,7 +96,8 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->Branch = 0;
 		controls->ALUOp = 2;
 		break;
-	case 8:
+	case 8: 
+	printf("addi\n");
 		controls->RegDst = 0;
 		controls->Jump = 0;
 		controls->Branch = 0;
@@ -107,6 +109,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->RegWrite = 1;
 		break;
 	case 35:
+	printf("lw\n");
 		controls->RegDst = 0;
 		controls->ALUSrc = 1;
 		controls->MemtoReg = 1;
@@ -184,21 +187,18 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->ALUOp = 0;
 		break;
 	default:
+		printf("invalid code\n");
 		validCode = 0;
 		break;
 	}
 	if (validCode)
-	{
-		printf("valid code\n");
 		return 0;
-	}
-	printf("invalid code\n");
+	printf("HALTING\n");
 	return 1;
 }
 
 void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
-{
-    
+{   
     *data1 = Reg[r1];
     *data2 = Reg[r2];
 }
@@ -216,14 +216,7 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
-	unsigned char ALUControl = ALUOp;
-	if (ALUSrc == 1)
-	{
-		printf("using sign extended\n");
-		data2 = extended_value;
-	}
 	
-
 	if (ALUOp == 7) {
 		printf("is an ALU op\n");
 		switch (funct) {
@@ -260,37 +253,54 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 			break;
 
 		default:
+			printf("HALTING\n");
 			return 1;
+			break;
 		}
 	}
 	else printf("is not an ALU op\n");
-    ALU(data1, data2, ALUOp, ALUresult, Zero);
+    
+	if (ALUSrc == 1)
+	{
+		printf("using sign extended\n");
+		data2 = extended_value;
+	}
+	ALU(data1, data2, ALUOp, ALUresult, Zero);
     return 0;
 }
 
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
-{       
-    
-    
-	if (MemRead == 1) {
-
-		printf("reading from mem\n");
-		if ((ALUresult % 4) == 0) {
-			*memdata = Mem[ALUresult >> 2];
+{ 
+	
+	printf("info dump:\naluresult:\t%x \ndata2:\t\t%x \nmemwrite:\t%c \nmemread:\t%c \nmemdata:\t%x \nmem:\t\t%x \n",
+		ALUresult, data2, MemWrite, MemRead, *memdata, *Mem);      
+	unsigned newLoc;
+	if(MemRead || MemWrite) {
+		
+		if (MemRead)
+		{// if 1 then asserted if 0 the de-asserted
+			printf("reading to memory\n");
+			if (ALUresult % 4 != 0)
+			{// if the ALUresult is not a proper address then halt
+			
+		printf("HALTING\n");
+				return 1;
+			}
+			newLoc = ALUresult >> 2 ; /* to change ALUresult to a word indicated at its location */
+			*memdata = Mem[newLoc];
 		}
-		else
-			return 1;
-	}
-
-	if (MemWrite == 1) {
-		printf("writing to mem\n");
-		if ((ALUresult % 4) == 0) {
-			Mem[ALUresult >> 2] = data2;
+		else if (MemWrite)
+		{// 1 for asserted and 0 for de-asserted
+			printf("writing to memory\n");
+			if (ALUresult % 4 != 0)
+			{// if the ALUresult is not a proper address then halt
+		printf("HALTING\n");
+				return 1;
+			}
+			newLoc = data2;
 		}
-		else
-			return 1;
+		printf("not reading or writing to memory\n");
 	}
-
 	return 0;
 }
 
@@ -300,18 +310,27 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
     if(RegWrite==1){
 		printf("writing to a register\n");
         
-        if(MemtoReg == 1 && RegDst == 0)
-            Reg[r2] = memdata;
+		
+        if(MemtoReg == 1 && RegDst == 0) {
+        	printf("1mem->reg | %x -> %x\n", memdata, r2);
+		    Reg[r2] = memdata;
+		}
         
-        else if(MemtoReg == 1 && RegDst == 1)
-            Reg[r3] = memdata;
+        else if(MemtoReg == 1 && RegDst == 1){
+        	printf("2mem->reg | %x -> %x\n", memdata, r3);
+			Reg[r3] = memdata;
+			}
         
         
-        else if(MemtoReg == 0 && RegDst == 0)
+        else if(MemtoReg == 0 && RegDst == 0){
+        	printf("1alu->reg | %x -> %x\n", memdata, ALUresult);
             Reg[r2] = ALUresult;
+		}
         
-        else if(MemtoReg == 0 && RegDst == 1)
+        else if(MemtoReg == 0 && RegDst == 1){
+        	printf("2alu->reg | %x -> %x\n", memdata, ALUresult);
             Reg[r3] = ALUresult;
+		}
     }
 }
 
