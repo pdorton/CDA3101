@@ -14,11 +14,18 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 	case 1:		// A - B
 		*ALUresult = A - B;
 		break;
+
 	case 2:		// if A < B, Z = 1; else Z = 0;
-		*ALUresult = 0;
-		if (A < B)
+		if( !(A & (1 << 31)) && !(B & (1 << 31)) )
+			*ALUresult = ( A < B ) ? 1 : 0;
+		else if( (A & (1 << 31)) && (B &(1 << 31)) )
+			*ALUresult = (A > B) ? 1 : 0;
+		else if(!(A & (1 << 31)) && (B & (1 << 31)) )
+			*ALUresult = 0;
+		else
 			*ALUresult = 1;
 		break;
+
 	case 3:		// if A < B, Z = 1; else Z = 0 (A and B are unsigned)
 		*ALUresult = 0;
 		if (A < B)
@@ -31,7 +38,7 @@ void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zer
 		*ALUresult = A | B;
 		break;
 	case 6:		// Shift left B by 16 bits
-		*ALUresult = B >> 16;
+		*ALUresult = B << 16;
 		break;
 	case 7:		// Z = NOT A
 		*ALUresult = ~A;
@@ -183,8 +190,8 @@ int instruction_decode(unsigned op, struct_controls *controls)
 
 void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2) 
 {
-	*data1 = r1; // assign r1 to data 1 
-	*data2 = r2; // assign r2 to data 2
+	*data1 = Reg[r1]; // assign r1 to data 1 
+	*data2 = Reg[r2]; // assign r2 to data 2
 }
 
 void sign_extend(unsigned offset, unsigned *extended_value) 
@@ -199,34 +206,119 @@ void sign_extend(unsigned offset, unsigned *extended_value)
 /* ALU operations */ /* 10 Points */
 int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsigned funct, char ALUOp, char ALUSrc, unsigned *ALUresult, char *Zero) 
 {
-	if(ALUOp == 1)
-		data2 = extended_value; // because its an i type
-	
-	ALU(data1, data2, char funct, unsigned *ALUresult, char *Zero) 
+	unsigned char ALUControl = ALUOp;
+
+	switch(ALUOp)
+	{
+		case 0x0: // addition or don't care
+		case 0x1: // subtraction
+		case 0x2: // set less than signed
+		case 0x3: // set less than unsigned
+		case 0x4: // and
+		case 0x5: // or
+		case 0x6: // shift Extended_Value left by 16 bits
+			break;
+		case 0x7: // if R type 
+		{
+			switch(funct)
+			{
+				case 0x20: 
+				{// add
+					ALUControl = 0x0;
+					break;
+				}
+				case 0x24:
+				{// and
+					ALUControl = 0x4;
+					break;
+				}
+				case 0x25:
+				{// or
+					ALUControl = 0x5;
+					break;
+				}
+				case 0x2a:
+				{// set less than signed
+					ALUControl = 0x2;
+					break;
+				}
+				case 0x2b:
+				{// set less than unsigned
+					ALUControl = 0x3;
+					break;
+				}
+				default:
+				{// any invalid op
+					return 1 // halt
+				}
+			}
+			break;
+		}// end of R-type
+		default:
+		{// if invalid op
+			return 1; // halt
+		}
+	}
+	if(ALUSrc == 1)
+	{
+		ALU(data1, Extended_Value, ALUControl, ALUresult, Zero);
+	}
+	else
+	{
+		ALU(data1, data2, ALUControl, ALUresult, Zero);
+	}
 	return 0;
 }
 
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem) 
 {
+	if(ALUresult % 4 != 0)
+
 	if( MemRead && MemWrite)
 	{// if both are assered then this is a don't care and return 0
 		return 0;
 	}
 	else if(MemRead)
 	{// if 1 then asserted if 0 the de-asserted
+		if(ALUresult % 4 != 0)
+		{// if the ALUresult is not a proper address then halt
+			return 1;
+		}
 		unsigned newLoc = ALUresult<<; /* to change ALUresult to a word indicated at its location */
 		*memdata = Mem[newLoc];
 	}
 	else if(MemWrite)
 	{// 1 for asserted and 0 for de-asserted
+		if(ALUresult % 4 != 0)
+		{// if the ALUresult is not a proper address then halt
+			return 1;
+		}
 		newLoc = data2;
 	}
 	return 0;
 }
 
 void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresult, char RegWrite, char RegDst, char MemtoReg, unsigned *Reg) 
-{
-	// write all data to ALUresult or memdata to a register addressed by r2 or r3
+{// write all data to ALUresult or memdata to a register addressed by r2 or r3
+
+	if(RegWrite == 1)
+	{// Information being written to register
+		if(MemtoReg == 1)
+		{// if the information is coming from memory
+			Reg[r2] = memdata; // instruction is I-Type so write to r2
+		}
+		else if(MemtoReg = 0)
+		{// then the information is coming from a register
+			if(RegDst == 1)
+			{// if R-type then right to r3
+				Reg[r3] = ALUresult;
+			}
+			else
+			{// if I-type then write to r2
+				Reg[r2] = ALUresult;
+			}
+		}
+	}
 }
 
 void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, char Zero, unsigned *PC) 
