@@ -63,15 +63,19 @@ int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
-    
-    
-	*op = (instruction >> 26) & 0b00000000000000000000000000111111; 
-	*r1 = (instruction >> 21) & 0b11111; 
-	*r2 = (instruction >> 16) & 0b11111; 
-	*r3 = (instruction >> 11) & 0b11111; 
-	*funct = instruction & 0b00000000000000000000000000111111; 
-	*offset = instruction & 0b00000000000000001111111111111111; 
-	*jsec = instruction & 0b00000011111111111111111111111111; 
+
+	printf("instruction partition");
+	const unsigned FIVE_BITS = 0x1F;
+	const unsigned SIX_BITS = 0x3F;
+	const unsigned SIXTEEN_BITS = 0xFFFF;
+	const unsigned TWENTYSIX_BITS = 0x3FFFFFF;
+	*op = ((instruction >> 26) & SIX_BITS);
+	*r1 = ((instruction >> 21) & FIVE_BITS);
+	*r2 = ((instruction >> 16) & FIVE_BITS);
+	*r3 = ((instruction >> 11) & FIVE_BITS);
+	*funct = instruction & SIX_BITS;
+	*offset = instruction & SIXTEEN_BITS;
+	*jsec = instruction & TWENTYSIX_BITS;
 }
 
 int instruction_decode(unsigned op,struct_controls *controls)
@@ -184,7 +188,11 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		break;
 	}
 	if (validCode)
+	{
+		printf("valid code");
 		return 0;
+	}
+	printf("invalid code");
 	return 1;
 }
 
@@ -208,58 +216,55 @@ void sign_extend(unsigned offset,unsigned *extended_value)
 
 int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigned funct,char ALUOp,char ALUSrc,unsigned *ALUresult,char *Zero)
 {
-    
-	if (ALUSrc == 1) {
+	unsigned char ALUControl = ALUOp;
+	if (ALUSrc == 1)
+	{
+		printf("using sign extended");
 		data2 = extended_value;
 	}
-
 	
-    if (ALUOp == 7) {
-    	
-    	switch(funct) {
-	    	
-	    	case 32:
-	    		ALUOp = 0;
-	    		break;
-	    	
-	    	case 34:
-	    		ALUOp = 1;
-	    		break;
-	    	
-	    	case 42:
-	    		ALUOp = 2;
-	    		break;
-	    	
-	    	case 43:
-	    		ALUOp = 3;
-	    		break;
-	    	
-	    	case 36:
-	    		ALUOp = 4;
-	    		break;
-	    	
-	    	case 37:
-	    		ALUOp = 5;
-	    		break;
-	    	
-	    	case 4:
-	    		ALUOp = 6;
-	    		break;
-	    	
-	    	case 39:
-	    		ALUOp = 7;
-	    		break;
-	    	
-	    	default:
-	    		return 1;
-	    }
-	    
-	    ALU(data1, data2, ALUOp, ALUresult, Zero);
-    } else {
-    	
-    	ALU(data1, data2, ALUOp, ALUresult, Zero);
-    }
 
+	if (ALUOp == 7) {
+		printf("is an ALU op");
+		switch (funct) {
+		case 32:
+			ALUOp = 0;
+			break;
+
+		case 34:
+			ALUOp = 1;
+			break;
+
+		case 42:
+			ALUOp = 2;
+			break;
+
+		case 43:
+			ALUOp = 3;
+			break;
+
+		case 36:
+			ALUOp = 4;
+			break;
+
+		case 37:
+			ALUOp = 5;
+			break;
+
+		case 4:
+			ALUOp = 6;
+			break;
+
+		case 39:
+			ALUOp = 7;
+			break;
+
+		default:
+			return 1;
+		}
+	}
+	else printf("is not an ALU op");
+    ALU(data1, data2, ALUOp, ALUresult, Zero);
     return 0;
 }
 
@@ -267,32 +272,33 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 {       
     
     
-    if(MemRead == 1){
-        if((ALUresult % 4) == 0){
-            *memdata = Mem[ALUresult >> 2];         
-        }
-        else
-            return 1;     
-    }
-            
-    
-    
-    
-    if(MemWrite == 1){
-        if((ALUresult % 4) == 0){
-            Mem[ALUresult >> 2] = data2;
-        }
-        else
-            return 1;
-    }
+	if (MemRead == 1) {
 
-    return 0;
+		printf("reading from mem");
+		if ((ALUresult % 4) == 0) {
+			*memdata = Mem[ALUresult >> 2];
+		}
+		else
+			return 1;
+	}
+
+	if (MemWrite == 1) {
+		printf("writing to mem");
+		if ((ALUresult % 4) == 0) {
+			Mem[ALUresult >> 2] = data2;
+		}
+		else
+			return 1;
+	}
+
+	return 0;
 }
 
 void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,char RegWrite,char RegDst,char MemtoReg,unsigned *Reg)
 {
     
     if(RegWrite==1){
+		printf("writing to a register");
         
         if(MemtoReg == 1 && RegDst == 0)
             Reg[r2] = memdata;
@@ -312,13 +318,18 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
 {
     
-    *PC += 4;
-    
-    
-    if(Zero == 1 && Branch == 1)
-        *PC += extended_value << 2;
-        
-    
-    if(Jump == 1)
-        *PC = (jsec << 2) | (*PC & 0xf0000000);
+	printf("updating PC!");
+	*PC += 4;
+
+
+	if (Zero && Branch)
+	{
+		printf("branching");
+		*PC += extended_value << 2;
+	}
+
+
+	else if (Jump)
+		printf("jumping");
+	*PC = (jsec << 2) | (*PC & 0xf0000000);
 }
