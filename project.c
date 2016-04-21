@@ -3,40 +3,35 @@
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
 	switch ((signed)ALUControl) {
-		case 0:
-			*ALUresult = A + B;
-			break;
-		case 1:
-			*ALUresult = A - B;
-			break;
-		case 2:
-			if (!(A & (1 << 31)) && !(B & (1 << 31)))
-				*ALUresult = (A < B) ? 1 : 0;
-			else if ((A & (1 << 31)) && (B &(1 << 31)))
-				*ALUresult = (A > B) ? 1 : 0;
-			else if (!(A & (1 << 31)) && (B & (1 << 31)))
-				*ALUresult = 0;
-			else
-				*ALUresult = 1;
-			break;
-
-		case 3:
+	case 0:
+		*ALUresult = A + B;
+		break;
+	case 1:
+		*ALUresult = A - B;
+		break;
+	case 2:
+		if ((signed)A < B)
+			*ALUresult = 1;
+		else
 			*ALUresult = 0;
-			if (A < B)
-				*ALUresult = 1;
-			break;
-		case 4:
-			*ALUresult = A & B;
-			break;
-		case 5:
-			*ALUresult = A | B;
-			break;
-		case 6:
-			*ALUresult = B << 16;
-			break;
-		case 7:
-			*ALUresult = ~A;
-			break;
+		break;
+	case 3:
+		*ALUresult = 0;
+		if (A < B)
+			*ALUresult = 1;
+		break;
+	case 4:
+		*ALUresult = A & B;
+		break;
+	case 5:
+		*ALUresult = A | B;
+		break;
+	case 6:
+		*ALUresult = B << 16;
+		break;
+	case 7:
+		*ALUresult = ~A;
+		break;
 	}
 	if (ALUresult == 0)
 		*Zero = 1;
@@ -56,7 +51,7 @@ int instruction_fetch(unsigned PC, unsigned *Mem, unsigned *instruction)
 
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1, unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
-		printf("instruction part");
+	printf("instruction part");
 
 	const unsigned FIVE_BITS = 0x1F;
 	const unsigned SIX_BITS = 0x3F;
@@ -76,6 +71,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 {
 	printf("instruction decode");
 
+	int validCode = 1;
 	switch (op) {
 	case 0:
 		controls->RegDst = 1;
@@ -144,7 +140,7 @@ int instruction_decode(unsigned op, struct_controls *controls)
 		controls->ALUOp = 1;
 		break;
 	case 10:
-        controls->RegDst = 1;
+		controls->RegDst = 1;
 		controls->RegWrite = 1;
 		controls->ALUSrc = 0;
 		controls->MemRead = 0;
@@ -177,9 +173,12 @@ int instruction_decode(unsigned op, struct_controls *controls)
 		controls->ALUOp = 0;
 		break;
 	default:
-		return 1;
+		validCode = 0;
 		break;
 	}
+	if (validCode)
+		return 0;
+	return 1;
 }
 
 void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2)
@@ -203,35 +202,35 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 	if (ALUSrc == 1)
 		data2 = extended_value;
 
-	if(ALUControl == 7)
+	if (ALUControl == 7)
 		switch (funct) {
-			case 32:
-				ALUControl = 0;
-				break;
-			case 34:
-				ALUControl = 1;
-				break;
-			case 42:
-				ALUControl = 2;
-				break;
-			case 43:
-				ALUControl = 3;
-				break;
-			case 36:
-				ALUControl = 4;
-				break;
-			case 37:
-				ALUControl = 5;
-				break;
-			case 4:
-				ALUControl = 6;
-				break;
-			case 39:
-				ALUControl = 7;
-				break;
-			default:
-				return 1;
-	}
+		case 32:
+			ALUControl = 0;
+			break;
+		case 34:
+			ALUControl = 1;
+			break;
+		case 42:
+			ALUControl = 2;
+			break;
+		case 43:
+			ALUControl = 3;
+			break;
+		case 36:
+			ALUControl = 4;
+			break;
+		case 37:
+			ALUControl = 5;
+			break;
+		case 4:
+			ALUControl = 6;
+			break;
+		case 39:
+			ALUControl = 7;
+			break;
+		default:
+			return 1;
+		}
 
 	ALU(data1, data2, ALUControl, ALUresult, Zero);
 	return 0;
