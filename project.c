@@ -2,36 +2,38 @@
 
 void ALU(unsigned A, unsigned B, char ALUControl, unsigned *ALUresult, char *Zero)
 {
-	switch ((signed)ALUControl) {
-	case 0:
-		*ALUresult = A + B;
-		break;
-	case 1:
-		*ALUresult = A - B;
-		break;
-	case 2:
-		if ((signed)A < B)
-			*ALUresult = 1;
-		else
+	switch ((int)ALUControl) {
+		case 0:
+			*ALUresult = A + B;
+			break;
+		case 1:
+			*ALUresult = A - B;
+			break;
+		case 2:
+			if ((signed)A < B)
+				*ALUresult = 1;
+			else
+				*ALUresult = 0;
+			break;
+		case 3:
 			*ALUresult = 0;
-		break;
-	case 3:
-		*ALUresult = 0;
-		if (A < B)
-			*ALUresult = 1;
-		break;
-	case 4:
-		*ALUresult = A & B;
-		break;
-	case 5:
-		*ALUresult = A | B;
-		break;
-	case 6:
-		*ALUresult = B << 16;
-		break;
-	case 7:
-		*ALUresult = ~A;
-		break;
+			if (A < B)
+				*ALUresult = 1;
+			break;
+		case 4:
+			*ALUresult = A & B;
+			break;
+		case 5:
+			*ALUresult = A | B;
+			break;
+		case 6:
+			*ALUresult = B << 16;
+			break;
+		case 7:
+			*ALUresult = ~A;
+			break;
+		default:
+			break;
 	}
 	if (ALUresult == 0)
 		*Zero = 1;
@@ -183,6 +185,8 @@ int instruction_decode(unsigned op, struct_controls *controls)
 
 void read_register(unsigned r1, unsigned r2, unsigned *Reg, unsigned *data1, unsigned *data2)
 {
+
+	printf("reading register");
 	*data1 = Reg[r1];
 	*data2 = Reg[r2];
 }
@@ -200,9 +204,14 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 {
 	unsigned char ALUControl = ALUOp;
 	if (ALUSrc == 1)
+	{
+		printf("using sign extended");
 		data2 = extended_value;
+	}	
 
-	if (ALUControl == 7)
+	if (ALUControl == 7) {
+
+		printf("is an ALU op");
 		switch (funct) {
 		case 32:
 			ALUControl = 0;
@@ -231,16 +240,17 @@ int ALU_operations(unsigned data1, unsigned data2, unsigned extended_value, unsi
 		default:
 			return 1;
 		}
-
+	}
+	else printf("is not an ALU op");
 	ALU(data1, data2, ALUControl, ALUresult, Zero);
 	return 0;
 }
 
 int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, unsigned *memdata, unsigned *Mem)
 {
-	//if we are reading,
-	//Read data from ALUresult * 4 index in Memory.
 	if (MemRead == 1) {
+
+		printf("reading from mem");
 		if ((ALUresult % 4) == 0) {
 			*memdata = Mem[ALUresult >> 2];
 		}
@@ -248,10 +258,8 @@ int rw_memory(unsigned ALUresult, unsigned data2, char MemWrite, char MemRead, u
 			return 1;
 	}
 
-	//if we are writing,
-	//Write data to ALUresult * 4 index in Memory
-	//Word aligned
 	if (MemWrite == 1) {
+		printf("writing to mem");
 		if ((ALUresult % 4) == 0) {
 			Mem[ALUresult >> 2] = data2;
 		}
@@ -266,6 +274,7 @@ void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresu
 {
 
 	if (RegWrite == 1)
+		printf("writing to a register");
 	{
 		if (MemtoReg == 1)
 		{
@@ -288,13 +297,18 @@ void write_register(unsigned r2, unsigned r3, unsigned memdata, unsigned ALUresu
 void PC_update(unsigned jsec, unsigned extended_value, char Branch, char Jump, char Zero, unsigned *PC)
 {
 
+	printf("updating PC!");
 	*PC += 4;
 
 
 	if (Zero && Branch)
+	{
+		printf("branching");
 		*PC += extended_value << 2;
+	}
 
 
 	else if (Jump)
+		printf("jumping");
 		*PC = (jsec << 2) | (*PC & 0xf0000000);
 }
