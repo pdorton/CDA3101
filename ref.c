@@ -38,6 +38,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
             *ALUresult = ~A;
             break;
 		default:
+			printf("something went wrong");
 			break;
     }
     
@@ -50,21 +51,21 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
+	// printf("fetch pc: %d, memloc: %x\n, value: %x\n", (int)PC, PC>>2, Mem[PC>>2] );
+	if (((PC % 4) != 0) || (PC >> 2) > 0x10000 || PC < 0x0)
+		return 1;
 	
-	unsigned index = PC >> 2;
-
-    
-	if(PC % 4 != 0)
-	    return 1;
-    
-	*instruction = Mem[index];
-	return 0;
+	
+	// Fetch instruction addressed by PC from Mem and write to instruction
+		*instruction = Mem[PC >> 2];
+		return 0;
+	
 }
 
 void instruction_partition(unsigned instruction, unsigned *op, unsigned *r1,unsigned *r2, unsigned *r3, unsigned *funct, unsigned *offset, unsigned *jsec)
 {
 
-	printf("instruction partition\n");
+	printf("instruction partition-------------------------\n");
 	const unsigned FIVE_BITS = 0x1F;
 	const unsigned SIX_BITS = 0x3F;
 	const unsigned SIXTEEN_BITS = 0xFFFF;
@@ -176,6 +177,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->ALUOp = 3;
 		break;
 	case 2:
+		printf("jump\n");
 		controls->RegDst = 0;
 		controls->RegWrite = 0;
 		controls->ALUSrc = 0;
@@ -191,7 +193,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		validCode = 0;
 		break;
 	}
-	printf("\nregdest: \t%c\nregwrite : \t%c\nalusrc : \t%c\nmemread : \t%c\nmemwrite : \t%c	\nmemtoreg : \t%c\njump : \t%c\nbranch : \t%c\naluop : \t%d",
+	printf("\nregdest: \t%x\nregwrite : \t%x\nalusrc : \t%x\nmemread : \t%x\nmemwrite : \t%x	\nmemtoreg : \t%x\njump : \t\t%x\nbranch : \t%x\naluop : \t%d\n",
 		controls->RegDst,
 		controls->RegWrite,
 		controls->ALUSrc,
@@ -211,6 +213,7 @@ void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigne
 {   
     *data1 = Reg[r1];
     *data2 = Reg[r2];
+	printf("data1:\t%d\ndata2:\t%x\n", *data1, *data2);
 }
 
 void sign_extend(unsigned offset,unsigned *extended_value)
@@ -231,34 +234,42 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 		printf("is an ALU op\n");
 		switch (funct) {
 		case 32:
+			printf("add\n");
 			ALUOp = 0;
 			break;
 
 		case 34:
+			printf("sub\n");
 			ALUOp = 1;
 			break;
 
 		case 42:
+			printf("slt\n");
 			ALUOp = 2;
 			break;
 
 		case 43:
+			printf("sltu\n");
 			ALUOp = 3;
 			break;
 
 		case 36:
+			printf("and\n");
 			ALUOp = 4;
 			break;
 
 		case 37:
+			printf("or\n");
 			ALUOp = 5;
 			break;
 
 		case 4:
+			printf("sll");
 			ALUOp = 6;
 			break;
 
 		case 39:
+			printf("not");
 			ALUOp = 7;
 			break;
 
@@ -270,6 +281,8 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 	}
 	else printf("is not an ALU op\n");
     
+	printf("ALU Operations-------------------\naluop:\t%x\ndata1:\t%x\ndata2:\t%x", ALUOp, data1, data2);
+	
 	if (ALUSrc == 1)
 	{
 		printf("using sign extended\n");
@@ -282,35 +295,28 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 { 
 	
-	printf("info dump:\naluresult:\t%x \ndata2:\t\t%x \nmemwrite:\t%c \nmemread:\t%c \nmemdata:\t%x \nmem:\t\t%x \n",
+	printf("info dump:\naluresult:\t%x \ndata2:\t\t%x \nmemwrite:\t%x \nmemread:\t%x \nmemdata:\t%x \nmem:\t\t%x \n",
 		ALUresult, data2, MemWrite, MemRead, *memdata, *Mem);      
 	unsigned newLoc;
-	if(MemRead || MemWrite) {
+	
+	int read = (int) MemRead;
+	int write = (int) MemWrite;
+	
+	if(read || write) {
 		
-		if (MemRead)
+		if (read)
 		{// if 1 then asserted if 0 the de-asserted
 			printf("reading to memory\n");
-			if (ALUresult % 4 != 0)
-			{// if the ALUresult is not a proper address then halt
-			
-		printf("HALTING\n");
-				return 1;
-			}
 			newLoc = ALUresult >> 2 ; /* to change ALUresult to a word indicated at its location */
 			*memdata = Mem[newLoc];
 		}
-		else if (MemWrite)
+		else if (write)
 		{// 1 for asserted and 0 for de-asserted
 			printf("writing to memory\n");
-			if (ALUresult % 4 != 0)
-			{// if the ALUresult is not a proper address then halt
-		printf("HALTING\n");
-				return 1;
-			}
 			newLoc = data2;
 		}
-		printf("not reading or writing to memory\n");
 	}
+	printf("not reading or writing to memory\n");
 	return 0;
 }
 
@@ -346,9 +352,10 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 
 void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
 {
-    
+    printf("%x", *PC);
 	printf("updating PC!\n");
 	*PC += 4;
+    printf("%x", *PC);
 
 
 	if (Zero && Branch)
