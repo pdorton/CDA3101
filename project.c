@@ -300,18 +300,20 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 	int read = (int) MemRead;
 	int write = (int) MemWrite;
 	
-		printf("MEMORY LOCATION: %x | %x", ALUresult, ALUresult >> 2);
-			
+	printf("MEMORY LOCATION: %x | SHIFTED: %x\n", ALUresult, ALUresult >> 2);
+	
 	if(read || write) {
 		
 		if (read)
 		{// if 1 then asserted if 0 the de-asserted
-			printf(" - Reading from memory\n");
+			printf("Reading\n");
+			printf("AluRes\tData\tMemLoc\tMemIndex\n%x\t%x\t%x\t%x\n",ALUresult, data2, Mem[ALUresult >> 2], ALUresult >> 2);
 			*memdata = Mem[ALUresult >> 2];
 		}
 		else if (write)
 		{// 1 for asserted and 0 for de-asserted
-			printf(" - Writing to memory\n");
+			printf("Writing\n");
+			printf("AluRes\tData\tMemLoc\tMemIndex\n%x\t%x\t%x\t%x\n",ALUresult, data2, Mem[ALUresult >> 2], ALUresult >> 2);
 			Mem[ALUresult >> 2] = data2;
 		}
 	}
