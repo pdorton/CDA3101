@@ -50,7 +50,7 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
 	if (((PC % 4) != 0) || (PC >> 2) > 0x10000 || PC < 0x0)
-		return 1;
+		printf("halting fetch"); return 1;
 	
 	
 		*instruction = Mem[PC >> 2];
@@ -190,7 +190,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 	if (validCode)
 		return 0;
 	
-	return 1;
+	printf("halting decode"); return 1;
 }
 
 void read_register(unsigned r1,unsigned r2,unsigned *Reg,unsigned *data1,unsigned *data2)
@@ -260,7 +260,7 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 
 		default:
 			
-			return 1;
+			printf("halting ops"); return 1;
 			break;
 		}
 	}
@@ -339,7 +339,6 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 
 
 	if (Jump){
-		
 		*PC = (jsec << 2) | (*PC & 0xf0000000);
 	}
 }
