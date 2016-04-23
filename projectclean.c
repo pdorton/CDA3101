@@ -187,17 +187,6 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		validCode = 0;
 		break;
 	}
-	
-	
-		controls->RegDst,
-		controls->RegWrite,
-		controls->ALUSrc,
-		controls->MemRead,
-		controls->MemWrite,
-		controls->MemtoReg,
-		controls->Jump,
-		controls->Branch,
-		controls->ALUOp);
 	if (validCode)
 		return 0;
 	
@@ -334,7 +323,6 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
             Reg[r3] = ALUresult;
 		}
     }
-	else 
 		
 }
 
