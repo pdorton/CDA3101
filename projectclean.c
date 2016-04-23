@@ -49,8 +49,8 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-	if (((PC % 4) != 0) || (PC >> 2) > 0x10000 || PC < 0x0)
-		printf("halting fetch"); return 1;
+	if (((PC % 4) != 0) || (PC >> 2) > 0x10000 || PC < 0x0){
+		printf("halting fetch"); return 1;}
 	
 	
 		*instruction = Mem[PC >> 2];
