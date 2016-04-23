@@ -1,3 +1,10 @@
+/**
+	Jake Ferrante & Patrick Dorton
+	CDA3103-16Spring 0001
+	University of Central Florida
+	04/22/2016
+*/
+
 #include "spimcore.h"
 
 void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
