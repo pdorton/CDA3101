@@ -316,7 +316,7 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 			printf("AluRes\tData\tMemLoc\tMemIndex\n%x\t%x\t%x\t%x\n",ALUresult, data2, Mem[ALUresult >> 2], ALUresult >> 2);
 			Mem[ALUresult >> 2] = data2;
 		}
-	}
+	} 
 	else
 		printf(" - Not reading or writing to memory\n");
 	return 0;

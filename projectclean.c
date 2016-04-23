@@ -79,7 +79,6 @@ int instruction_decode(unsigned op,struct_controls *controls)
 	int validCode = 1;
 	switch (op) {
 	case 0:
-	
 		controls->RegDst = 1;
 		controls->ALUSrc = 0;
 		controls->MemtoReg = 0;
@@ -103,7 +102,6 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->RegWrite = 1;
 		break;
 	case 35:
-	
 		controls->RegDst = 0;
 		controls->ALUSrc = 1;
 		controls->MemtoReg = 1;
@@ -115,7 +113,6 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->ALUOp = 0;
 		break;
 	case 43:
-		
 		controls->RegDst = 2;
 		controls->ALUSrc = 1;
 		controls->MemtoReg = 2;
@@ -216,7 +213,6 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 {
 	
 	if (ALUOp == 2) {
-		
 		switch (funct) {
 		case 32:
 			
@@ -264,13 +260,9 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 			break;
 		}
 	}
-	else 
-    	
-	if (ALUSrc == 1)
-	{
-		
+	else if (ALUSrc == 1)
 		data2 = extended_value;
-	}
+	
 	ALU(data1, data2, ALUOp, ALUresult, Zero);
     return 0;
 }
@@ -282,63 +274,44 @@ int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsig
 	int write = (int) MemWrite;
 	
 	if(read || write) {
-		
 		if (read)
-		{
 			*memdata = Mem[ALUresult >> 2];
-		}
+		
 		else if (write)
-		{
-			
 			Mem[ALUresult >> 2] = data2;
-		}
 	}
 	else
-		
-	return 0;
+		return 0;
 }
 
 void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,char RegWrite,char RegDst,char MemtoReg,unsigned *Reg)
 {
     
-    if(RegWrite==1){
-        if(MemtoReg == 1 && RegDst == 0) {
-        	
+    if(RegWrite){
+        if(MemtoReg && RegDst)
 		    Reg[r2] = memdata;
-		}
         
-        else if(MemtoReg == 1 && RegDst == 1){
-        	
+        else if(MemtoReg && RegDst)
 			Reg[r3] = memdata;
-			}
+			
         
-        
-        else if(MemtoReg == 0 && RegDst == 0){
-        	
+        else if(MemtoReg && RegDst)
             Reg[r2] = ALUresult;
-		}
-        
-        else if(MemtoReg == 0 && RegDst == 1){
-        	
-            Reg[r3] = ALUresult;
-		}
-    }
 		
+        
+        else if(MemtoReg && RegDst)
+            Reg[r3] = ALUresult;
+		
+    }
 }
 
 void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char Zero,unsigned *PC)
 {
-	
-    
 	*PC += 4;
-	if (Zero && Branch)
-	{
-		
+	
+	if (Zero && Branch)		
 		*PC += extended_value << 2;
-	}
 
-
-	if (Jump){
+	if (Jump)
 		*PC = (jsec << 2) | (*PC & 0xf0000000);
-	}
 }
