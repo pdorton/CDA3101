@@ -41,8 +41,6 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 			
 			break;
     }
-    
-    
     if(*ALUresult == 0)
         *Zero = 1;
     else
@@ -51,9 +49,6 @@ void ALU(unsigned A,unsigned B,char ALUControl,unsigned *ALUresult,char *Zero)
 
 int instruction_fetch(unsigned PC,unsigned *Mem,unsigned *instruction)
 {
-	
-	
-	
 	if (((PC % 4) != 0) || (PC >> 2) > 0x10000 || PC < 0x0)
 		return 1;
 	
@@ -140,7 +135,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->MemWrite = 0;
 		controls->Jump = 0;
 		controls->Branch = 0;
-		controls->ALUOp = 2;
+		controls->ALUOp = 0;
 		break;
 	case 4:
 		controls->RegDst = 2;
@@ -162,7 +157,7 @@ int instruction_decode(unsigned op,struct_controls *controls)
 		controls->MemtoReg = 0;
 		controls->Jump = 0;
 		controls->Branch = 0;
-		controls->ALUOp = 2;
+		controls->ALUOp = 0;
 		break;
 	case 11:
 		controls->RegDst = 1;
@@ -293,26 +288,18 @@ int ALU_operations(unsigned data1,unsigned data2,unsigned extended_value,unsigne
 
 int rw_memory(unsigned ALUresult,unsigned data2,char MemWrite,char MemRead,unsigned *memdata,unsigned *Mem)
 { 
-	
-	
-	
 
 	int read = (int) MemRead;
 	int write = (int) MemWrite;
-	
-	
 	
 	if(read || write) {
 		
 		if (read)
 		{
-			
-			
 			*memdata = Mem[ALUresult >> 2];
 		}
 		else if (write)
 		{
-			
 			
 			Mem[ALUresult >> 2] = data2;
 		}
@@ -326,9 +313,6 @@ void write_register(unsigned r2,unsigned r3,unsigned memdata,unsigned ALUresult,
 {
     
     if(RegWrite==1){
-		
-        
-		
         if(MemtoReg == 1 && RegDst == 0) {
         	
 		    Reg[r2] = memdata;
@@ -359,11 +343,6 @@ void PC_update(unsigned jsec,unsigned extended_value,char Branch,char Jump,char 
 	
     
 	*PC += 4;
-    
-    
-    
-
-
 	if (Zero && Branch)
 	{
 		
